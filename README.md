@@ -33,7 +33,7 @@ The web demo lets you explore a virtual DOS filesystem -- yes, `C:\GAMES\DOOM` i
 in there, and so is `C:\PROJECTS\SMARTFILE\SMARTFILE.C` with code that should look
 very familiar.
 
-**[Open the web demo](index.html)** (host via GitHub Pages, or just open `index.html` locally)
+**[Open the web demo](https://jawnty.github.io/smartfile/)**
 
 ## Run It For Real
 
