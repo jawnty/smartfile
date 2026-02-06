@@ -82,7 +82,7 @@ python3 smartfile.py --gray
 | **File API** | `findfirst` / `findnext` | `os.listdir` |
 | **OS** | MS-DOS | Anything with a terminal |
 | **Monitor** | 14" grayscale CRT | Whatever you've got |
-| **Build system** | `MAKE` | None needed |
+| **Build system** | `BUILD.BAT` | None needed |
 | **Lines of code** | ~800 | ~700 |
 | **Vibe** | Identical | Identical |
 

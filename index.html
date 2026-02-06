@@ -439,24 +439,23 @@ void showhelp(void);
 
 #endif`;
 
-const MAKEFILE = `# SMARTFILE Makefile for Turbo C++ 3.0
-# Shailendra & John, 1998
+const BUILD_BAT = `@ECHO OFF
+REM SMARTFILE build script
+REM Shailendra & John, 1998
 
-CC = tcc
-CFLAGS = -ml -O2 -w
-OBJS = smartfile.obj
+ECHO Compiling SMARTFILE.C ...
+TCC -ml -O2 SMARTFILE.C
+IF ERRORLEVEL 1 GOTO ERR
 
-all: smartfile.exe
+ECHO.
+ECHO Build successful! Run SMARTFILE.EXE
+GOTO END
 
-smartfile.exe: $(OBJS)
-\t$(CC) $(CFLAGS) -esmartfile.exe $(OBJS)
+:ERR
+ECHO.
+ECHO *** BUILD FAILED ***
 
-smartfile.obj: smartfile.c smartfile.h
-\t$(CC) $(CFLAGS) -c smartfile.c
-
-clean:
-\tdel *.obj
-\tdel *.exe`;
+:END`;
 
 const SF_README = `SMARTFILE v1.0 - File Manager for MS-DOS
 ========================================
@@ -479,7 +478,7 @@ REQUIREMENTS:
 
 COMPILING:
   Requires Turbo C++ 3.0 or compatible.
-  Run MAKE to build from source.
+  Run BUILD.BAT to compile.
 
 Dedicated to late nights, Mountain Dew,
 and 14-inch CRT monitors.`;
@@ -543,7 +542,7 @@ const FS = {
       'SMARTFILE.H':   { _size: 2340,  _date: '11-18-98', _content: SMARTFILE_H },
       'SMARTFILE.EXE': { _size: 34816, _date: '11-22-98' },
       'SMARTFILE.OBJ': { _size: 28672, _date: '11-22-98' },
-      'MAKEFILE':      { _size: 298,   _date: '10-05-98', _content: MAKEFILE },
+      'BUILD.BAT':     { _size: 234,   _date: '10-05-98', _content: BUILD_BAT },
       'README.TXT':    { _size: 489,   _date: '10-01-98', _content: SF_README },
     },
   },
@@ -572,7 +571,6 @@ const FS = {
       'TCC.EXE':    { _size: 157264, _date: '05-20-92' },
       'TLINK.EXE':  { _size: 149504, _date: '05-20-92' },
       'TASM.EXE':   { _size: 129536, _date: '05-20-92' },
-      'MAKE.EXE':   { _size: 42160,  _date: '05-20-92' },
       'GREP.COM':   { _size: 8974,   _date: '05-20-92' },
       'TOUCH.COM':  { _size: 3874,   _date: '05-20-92' },
     },
