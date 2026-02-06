@@ -283,7 +283,7 @@ const SMARTFILE_C = `/*
  * SMARTFILE v1.0 - File Manager for MS-DOS
  * (c) 1998 Shailendra Mishra & John Thomas
  *
- * Compiled with Borland C++ 3.1
+ * Compiled with Turbo C++ 3.0
  * Text mode 80x25, direct video memory access
  */
 
@@ -439,10 +439,10 @@ void showhelp(void);
 
 #endif`;
 
-const MAKEFILE = `# SMARTFILE Makefile for Borland C++ 3.1
+const MAKEFILE = `# SMARTFILE Makefile for Turbo C++ 3.0
 # Shailendra & John, 1998
 
-CC = bcc
+CC = tcc
 CFLAGS = -ml -O2 -w
 OBJS = smartfile.obj
 
@@ -478,7 +478,7 @@ REQUIREMENTS:
   - 640K conventional memory
 
 COMPILING:
-  Requires Borland C++ 3.1 or compatible.
+  Requires Turbo C++ 3.0 or compatible.
   Run MAKE to build from source.
 
 Dedicated to late nights, Mountain Dew,
@@ -499,7 +499,7 @@ IDDQD IDKFA IDCLIP IDBEHOLD`;
 
 const AUTOEXEC = `@ECHO OFF
 PROMPT $P$G
-PATH C:\\DOS;C:\\WINDOWS;C:\\BORLANDC\\BIN
+PATH C:\\DOS;C:\\WINDOWS;C:\\TC\\BIN
 SET TEMP=C:\\TEMP
 SET TMP=C:\\TEMP
 SET BLASTER=A220 I5 D1 H5 T4
@@ -508,7 +508,7 @@ LH C:\\MOUSE\\MOUSE.COM
 LH C:\\DOS\\DOSKEY.COM
 ECHO.
 ECHO    Welcome to the SmartFile Dev PC
-ECHO    Borland C++ 3.1 Ready
+ECHO    Turbo C++ 3.0 Ready
 ECHO.`;
 
 const CONFIG_SYS = `DEVICE=C:\\DOS\\HIMEM.SYS
@@ -567,9 +567,9 @@ const FS = {
       'MAPHEAD.WL6':  { _size: 402,    _date: '05-05-92' },
     },
   },
-  'BORLANDC': {
+  'TC': {
     'BIN': {
-      'BCC.EXE':    { _size: 157264, _date: '05-20-92' },
+      'TCC.EXE':    { _size: 157264, _date: '05-20-92' },
       'TLINK.EXE':  { _size: 149504, _date: '05-20-92' },
       'TASM.EXE':   { _size: 129536, _date: '05-20-92' },
       'MAKE.EXE':   { _size: 42160,  _date: '05-20-92' },

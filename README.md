@@ -15,13 +15,13 @@
 
 ---
 
-Remember `C:\PROJECTS\SMARTFILE\SMARTFILE.C`? Remember Borland C++ 3.1, `conio.h`,
+Remember `C:\PROJECTS\SMARTFILE\SMARTFILE.C`? Remember Turbo C++ 3.0, `conio.h`,
 writing directly to video memory at `0xB800`, and `findfirst`/`findnext` loops?
 
 Remember the box-drawing characters, the arrow key navigation, the grayscale monitor?
 
 That was 1998. We built a file manager from scratch on MS-DOS. No frameworks, no
-Stack Overflow, no AI -- just two guys, a Borland compiler, and a 14-inch CRT.
+Stack Overflow, no AI -- just two guys, a Turbo C++ compiler, and a 14-inch CRT.
 
 **SmartFile 2026** brings it back. Same spirit, new millennium. A text-based file
 browser for your terminal that works on your actual filesystem. Navigate with
@@ -77,7 +77,7 @@ python3 smartfile.py --gray
 | | 1998 | 2026 |
 |---|---|---|
 | **Language** | C | Python |
-| **Compiler** | Borland C++ 3.1 | `python3` |
+| **Compiler** | Turbo C++ 3.0 | `python3` |
 | **Display** | Direct video memory (`0xB800`) | curses |
 | **File API** | `findfirst` / `findnext` | `os.listdir` |
 | **OS** | MS-DOS | Anything with a terminal |
