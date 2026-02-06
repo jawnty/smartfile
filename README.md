@@ -42,7 +42,7 @@ No dependencies beyond Python 3.
 
 ```bash
 # Clone the repo
-git clone <repo-url>
+git clone https://github.com/jawnty/smartfile.git
 cd smartfile
 
 # Run it
