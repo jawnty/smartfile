@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartFile 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111;
+    color: #ccc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  #monitor {
+    background: #1a1a1a;
+    border: 3px solid #333;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
+    margin-bottom: 24px;
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  #crt {
+    position: relative;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  #crt::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.15) 0px,
+      rgba(0,0,0,0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  #crt::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  #screen {
+    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-size: 15px;
+    line-height: 1.2;
+    padding: 4px;
+    white-space: pre;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* DOS 16-color palette */
+  .f0{color:#000}.f1{color:#0000AA}.f2{color:#00AA00}.f3{color:#00AAAA}
+  .f4{color:#AA0000}.f5{color:#AA00AA}.f6{color:#AA5500}.f7{color:#AAAAAA}
+  .f8{color:#555}.f9{color:#5555FF}.fa{color:#55FF55}.fb{color:#55FFFF}
+  .fc{color:#FF5555}.fd{color:#FF55FF}.fe{color:#FFFF55}.ff{color:#FFF}
+
+  .b0{background:#000}.b1{background:#0000AA}.b2{background:#00AA00}.b3{background:#00AAAA}
+  .b4{background:#AA0000}.b5{background:#AA00AA}.b6{background:#AA5500}.b7{background:#AAAAAA}
+  .b8{background:#555}.b9{background:#5555FF}.ba{background:#55FF55}.bb{background:#55FFFF}
+  .bc{background:#FF5555}.bd{background:#FF55FF}.be{background:#FFFF55}.bf{background:#FFF}
+
+  .bold { font-weight: bold; }
+
+  #hints {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 30px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+  #hints kbd {
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  #download {
+    max-width: 640px;
+    text-align: center;
+    padding: 30px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #1a1a1a;
+    margin-bottom: 40px;
+  }
+
+  #download h2 {
+    color: #5555FF;
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+
+  #download p {
+    color: #999;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  #download code {
+    background: #000;
+    color: #55FF55;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+  }
+
+  #download .cmd-block {
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 14px 18px;
+    text-align: left;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #55FF55;
+    margin: 16px 0;
+    line-height: 1.8;
+  }
+
+  #download .cmd-block .prompt { color: #AAAAAA; }
+  #download .cmd-block .flag { color: #FFFF55; }
+
+  .footer {
+    color: #444;
+    font-size: 12px;
+    margin-top: 20px;
+    font-style: italic;
+  }
+
+  @media (max-width: 700px) {
+    #screen { font-size: 10px; }
+    body { padding: 8px; }
+    #monitor { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="monitor">
+  <div id="crt">
+    <pre id="screen"></pre>
+  </div>
+</div>
+
+<div id="hints">
+  <kbd>&uarr;</kbd> <kbd>&darr;</kbd> Navigate &nbsp;
+  <kbd>Enter</kbd> Open &nbsp;
+  <kbd>Backspace</kbd> Back &nbsp;
+  <kbd>F1</kbd> Help &nbsp;
+  <kbd>F2</kbd> About
+</div>
+
+<div id="download">
+  <h2>&#x1F4BE; Want the real thing?</h2>
+  <p>
+    This web demo browses a virtual DOS filesystem for the nostalgia.
+    <br>The <strong>real SmartFile 2026</strong> browses your actual files, locally, in your terminal.
+  </p>
+  <div class="cmd-block">
+    <span class="prompt">$</span> git clone <span class="flag">&lt;repo-url&gt;</span><br>
+    <span class="prompt">$</span> python3 smartfile.py<br>
+    <span class="prompt">$</span> python3 smartfile.py <span class="flag">--gray</span> &nbsp; <span style="color:#555"># monochrome mode</span>
+  </div>
+  <p>
+    Requires <strong>Python 3</strong> and a terminal. No dependencies.
+  </p>
+</div>
+
+<div class="footer">
+  A tribute to the original SmartFile by Shailendra Mishra &amp; John Thomas, 1998
+</div>
+
+<script>
+// ============================================================
+//  SmartFile 2026 - Web Demo
+//  Virtual DOS filesystem browser
+// ============================================================
+
+const COLS = 80;
+const ROWS = 25;
+
+// --- Screen buffer ---
+let buf = [];
+function clearBuf(fg, bg) {
+  buf = [];
+  for (let y = 0; y < ROWS; y++) {
+    buf[y] = [];
+    for (let x = 0; x < COLS; x++) {
+      buf[y][x] = { ch: ' ', fg: fg || 'f', bg: bg || '1' };
+    }
+  }
+}
+
+function putStr(y, x, str, fg, bg, bold) {
+  if (y < 0 || y >= ROWS) return;
+  for (let i = 0; i < str.length; i++) {
+    const cx = x + i;
+    if (cx < 0 || cx >= COLS) continue;
+    buf[y][cx] = { ch: str[i], fg: fg || 'f', bg: bg || '1', bold: !!bold };
+  }
+}
+
+function fillRow(y, fg, bg) {
+  for (let x = 0; x < COLS; x++) {
+    buf[y][x] = { ch: ' ', fg: fg || 'f', bg: bg || '1' };
+  }
+}
+
+function hLine(y, x1, x2, fg, bg) {
+  for (let x = x1; x <= x2; x++) {
+    if (x >= 0 && x < COLS) buf[y][x] = { ch: '\u2500', fg: fg||'f', bg: bg||'1' };
+  }
+}
+
+function drawDoubleBox(y1, x1, h, w, fg, bg) {
+  const y2 = y1 + h - 1, x2 = x1 + w - 1;
+  putStr(y1, x1, '\u2554', fg, bg); putStr(y1, x2, '\u2557', fg, bg);
+  putStr(y2, x1, '\u255A', fg, bg); putStr(y2, x2, '\u255D', fg, bg);
+  for (let x = x1+1; x < x2; x++) { putStr(y1, x, '\u2550', fg, bg); putStr(y2, x, '\u2550', fg, bg); }
+  for (let y = y1+1; y < y2; y++) { putStr(y, x1, '\u2551', fg, bg); putStr(y, x2, '\u2551', fg, bg); }
+}
+
+function escHtml(c) {
+  if (c === '<') return '&lt;'; if (c === '>') return '&gt;';
+  if (c === '&') return '&amp;'; return c;
+}
+
+function render() {
+  let html = '';
+  for (let y = 0; y < ROWS; y++) {
+    let x = 0;
+    while (x < COLS) {
+      const c = buf[y][x];
+      let run = c.ch;
+      let rx = x + 1;
+      while (rx < COLS && buf[y][rx].fg === c.fg && buf[y][rx].bg === c.bg && buf[y][rx].bold === c.bold) {
+        run += buf[y][rx].ch; rx++;
+      }
+      const cls = `f${c.fg} b${c.bg}` + (c.bold ? ' bold' : '');
+      let escaped = '';
+      for (const ch of run) escaped += escHtml(ch);
+      html += `<span class="${cls}">${escaped}</span>`;
+      x = rx;
+    }
+    if (y < ROWS - 1) html += '\n';
+  }
+  screenEl.innerHTML = html;
+}
+
+// --- Virtual Filesystem ---
+// Files: { _size, _date, _content? }
+// Directories: plain objects containing files/dirs
+
+const SMARTFILE_C = `/*
+ * SMARTFILE v1.0 - File Manager for MS-DOS
+ * (c) 1998 Shailendra Mishra & John Thomas
+ *
+ * Compiled with Borland C++ 3.1
+ * Text mode 80x25, direct video memory access
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+#include <dos.h>
+#include <dir.h>
+
+#define MAXFILES    512
+#define SCREEN_W    80
+#define SCREEN_H    25
+#define VIDEO_SEG   0xB800
+
+typedef struct {
+    char name[13];
+    long size;
+    int  attr;
+    unsigned date;
+    unsigned time;
+} FILEENTRY;
+
+FILEENTRY filelist[MAXFILES];
+int filecount = 0;
+int cursel = 0;
+int scrollpos = 0;
+char cwd[128];
+
+/* Write char+attr directly to video memory */
+void vidputc(int row, int col, char ch, int attr) {
+    char far *vid = (char far *)MK_FP(VIDEO_SEG, 0);
+    int offset = (row * SCREEN_W + col) * 2;
+    vid[offset] = ch;
+    vid[offset + 1] = attr;
+}
+
+void drawbox(int x1, int y1, int x2, int y2, int attr) {
+    int i;
+    vidputc(y1, x1, 218, attr);
+    vidputc(y1, x2, 191, attr);
+    vidputc(y2, x1, 192, attr);
+    vidputc(y2, x2, 217, attr);
+    for (i = x1+1; i < x2; i++) {
+        vidputc(y1, i, 196, attr);
+        vidputc(y2, i, 196, attr);
+    }
+    for (i = y1+1; i < y2; i++) {
+        vidputc(i, x1, 179, attr);
+        vidputc(i, x2, 179, attr);
+    }
+}
+
+int loadfiles(char *path) {
+    struct ffblk ff;
+    int done;
+    char searchpath[128];
+
+    filecount = 0;
+    sprintf(searchpath, "%s\\\\*.*", path);
+    done = findfirst(searchpath, &ff, FA_DIREC|FA_ARCH);
+    while (!done && filecount < MAXFILES) {
+        strcpy(filelist[filecount].name, ff.ff_name);
+        filelist[filecount].size = ff.ff_fsize;
+        filelist[filecount].attr = ff.ff_attrib;
+        filelist[filecount].date = ff.ff_fdate;
+        filelist[filecount].time = ff.ff_ftime;
+        filecount++;
+        done = findnext(&ff);
+    }
+    return filecount;
+}
+
+void drawfilelist(void) {
+    int i, y, attr;
+    for (i = 0; i < SCREEN_H - 4; i++) {
+        y = i + scrollpos;
+        if (y >= filecount) break;
+        attr = (y == cursel) ? 0x70 : 0x07;
+        if (filelist[y].attr & FA_DIREC)
+            attr = (y == cursel) ? 0x7E : 0x0E;
+        /* draw file entry at row i+2 */
+        drawentry(i + 2, &filelist[y], attr);
+    }
+}
+
+void main(void) {
+    int key, running = 1;
+    clrscr();
+    getcwd(cwd, 128);
+    loadfiles(cwd);
+
+    while (running) {
+        drawbox(0, 0, 79, 24, 0x07);
+        drawfilelist();
+
+        key = getch();
+        if (key == 0) key = getch() + 256;
+
+        switch (key) {
+            case 328: /* Up arrow */
+                if (cursel > 0) cursel--;
+                break;
+            case 336: /* Down arrow */
+                if (cursel < filecount-1) cursel++;
+                break;
+            case 13:  /* Enter */
+                if (filelist[cursel].attr & FA_DIREC)
+                    enterdir(filelist[cursel].name);
+                break;
+            case 8:   /* Backspace */
+                goback();
+                break;
+            case 27:  /* Escape */
+                running = 0;
+                break;
+        }
+    }
+    clrscr();
+}`;
+
+const SMARTFILE_H = `/*
+ * SMARTFILE.H - Header file
+ * (c) 1998 Shailendra Mishra & John Thomas
+ */
+
+#ifndef SMARTFILE_H
+#define SMARTFILE_H
+
+#define VERSION     "1.0"
+#define MAXFILES    512
+#define SCREEN_W    80
+#define SCREEN_H    25
+#define VIDEO_SEG   0xB800
+
+typedef struct {
+    char name[13];
+    long size;
+    int  attr;
+    unsigned date;
+    unsigned time;
+} FILEENTRY;
+
+/* Function prototypes */
+void vidputc(int row, int col, char ch, int attr);
+void drawbox(int x1, int y1, int x2, int y2, int attr);
+int  loadfiles(char *path);
+void drawfilelist(void);
+void enterdir(char *dirname);
+void goback(void);
+void drawentry(int row, FILEENTRY *f, int attr);
+void showhelp(void);
+
+#endif`;
+
+const MAKEFILE = `# SMARTFILE Makefile for Borland C++ 3.1
+# Shailendra & John, 1998
+
+CC = bcc
+CFLAGS = -ml -O2 -w
+OBJS = smartfile.obj
+
+all: smartfile.exe
+
+smartfile.exe: $(OBJS)
+\t$(CC) $(CFLAGS) -esmartfile.exe $(OBJS)
+
+smartfile.obj: smartfile.c smartfile.h
+\t$(CC) $(CFLAGS) -c smartfile.c
+
+clean:
+\tdel *.obj
+\tdel *.exe`;
+
+const SF_README = `SMARTFILE v1.0 - File Manager for MS-DOS
+========================================
+(c) 1998 Shailendra Mishra & John Thomas
+
+A text-mode file manager for MS-DOS.
+Navigate your files without leaving the
+command prompt!
+
+CONTROLS:
+  Arrow keys .. Navigate files
+  Enter ...... Open directory
+  Backspace .. Go back
+  Escape ..... Exit
+
+REQUIREMENTS:
+  - MS-DOS 5.0 or higher
+  - 286 processor or better
+  - 640K conventional memory
+
+COMPILING:
+  Requires Borland C++ 3.1 or compatible.
+  Run MAKE to build from source.
+
+Dedicated to late nights, Mountain Dew,
+and 14-inch CRT monitors.`;
+
+const DOOM_README = `DOOM v1.9 - id Software, 1993
+
+System Requirements:
+  - 386 processor (486 recommended)
+  - 4 MB RAM
+  - VGA graphics
+  - Hard drive with 10 MB free
+
+Run SETUP.EXE to configure sound card.
+Run DOOM.EXE to play.
+
+IDDQD IDKFA IDCLIP IDBEHOLD`;
+
+const AUTOEXEC = `@ECHO OFF
+PROMPT $P$G
+PATH C:\\DOS;C:\\WINDOWS;C:\\BORLANDC\\BIN
+SET TEMP=C:\\TEMP
+SET TMP=C:\\TEMP
+SET BLASTER=A220 I5 D1 H5 T4
+C:\\DOS\\SMARTDRV.EXE /X
+LH C:\\MOUSE\\MOUSE.COM
+LH C:\\DOS\\DOSKEY.COM
+ECHO.
+ECHO    Welcome to the SmartFile Dev PC
+ECHO    Borland C++ 3.1 Ready
+ECHO.`;
+
+const CONFIG_SYS = `DEVICE=C:\\DOS\\HIMEM.SYS
+DEVICE=C:\\DOS\\EMM386.EXE NOEMS
+DOS=HIGH,UMB
+FILES=40
+BUFFERS=20
+STACKS=9,256
+LASTDRIVE=Z
+DEVICEHIGH=C:\\MOUSE\\MOUSE.SYS`;
+
+const FS = {
+  'AUTOEXEC.BAT': { _size: 312, _date: '03-15-98', _content: AUTOEXEC },
+  'CONFIG.SYS':   { _size: 178, _date: '03-15-98', _content: CONFIG_SYS },
+  'COMMAND.COM':   { _size: 54645, _date: '06-10-97' },
+  'DOS': {
+    'EDIT.COM':     { _size: 69886, _date: '06-10-97' },
+    'MEM.EXE':      { _size: 32150, _date: '06-10-97' },
+    'HIMEM.SYS':    { _size: 29136, _date: '06-10-97' },
+    'EMM386.EXE':   { _size: 120926, _date: '06-10-97' },
+    'SMARTDRV.EXE': { _size: 43386, _date: '06-10-97' },
+    'MSCDEX.EXE':   { _size: 25049, _date: '06-10-97' },
+    'DOSKEY.COM':   { _size: 5883, _date: '06-10-97' },
+    'FORMAT.COM':   { _size: 22916, _date: '06-10-97' },
+    'SCANDISK.EXE': { _size: 124436, _date: '06-10-97' },
+    'DEFRAG.EXE':   { _size: 78650, _date: '06-10-97' },
+    'XCOPY.EXE':    { _size: 15820, _date: '06-10-97' },
+  },
+  'PROJECTS': {
+    'SMARTFILE': {
+      'SMARTFILE.C':   { _size: 12458, _date: '11-22-98', _content: SMARTFILE_C },
+      'SMARTFILE.H':   { _size: 2340,  _date: '11-18-98', _content: SMARTFILE_H },
+      'SMARTFILE.EXE': { _size: 34816, _date: '11-22-98' },
+      'SMARTFILE.OBJ': { _size: 28672, _date: '11-22-98' },
+      'MAKEFILE':      { _size: 298,   _date: '10-05-98', _content: MAKEFILE },
+      'README.TXT':    { _size: 489,   _date: '10-01-98', _content: SF_README },
+    },
+  },
+  'GAMES': {
+    'DOOM': {
+      'DOOM.EXE':    { _size: 266689,  _date: '12-10-93' },
+      'DOOM.WAD':    { _size: 4196020, _date: '12-10-93' },
+      'DOOM2.WAD':   { _size: 14604584, _date: '09-30-94' },
+      'SETUP.EXE':   { _size: 18945,   _date: '12-10-93' },
+      'IPXSETUP.EXE':{ _size: 11520,   _date: '12-10-93' },
+      'MODEM.CFG':   { _size: 128,     _date: '01-15-94' },
+      'README.TXT':  { _size: 284,     _date: '12-10-93', _content: DOOM_README },
+    },
+    'PRINCE': {
+      'PRINCE.EXE':  { _size: 123200, _date: '03-01-90' },
+      'PRINCE.DAT':  { _size: 419398, _date: '03-01-90' },
+    },
+    'WOLF3D': {
+      'WOLF3D.EXE':   { _size: 258976, _date: '05-05-92' },
+      'VSWAP.WL6':    { _size: 1544080, _date: '05-05-92' },
+      'MAPHEAD.WL6':  { _size: 402,    _date: '05-05-92' },
+    },
+  },
+  'BORLANDC': {
+    'BIN': {
+      'BCC.EXE':    { _size: 157264, _date: '05-20-92' },
+      'TLINK.EXE':  { _size: 149504, _date: '05-20-92' },
+      'TASM.EXE':   { _size: 129536, _date: '05-20-92' },
+      'MAKE.EXE':   { _size: 42160,  _date: '05-20-92' },
+      'GREP.COM':   { _size: 8974,   _date: '05-20-92' },
+      'TOUCH.COM':  { _size: 3874,   _date: '05-20-92' },
+    },
+    'INCLUDE': {
+      'STDIO.H':    { _size: 4258,  _date: '05-20-92' },
+      'STDLIB.H':   { _size: 3890,  _date: '05-20-92' },
+      'STRING.H':   { _size: 2104,  _date: '05-20-92' },
+      'CONIO.H':    { _size: 1856,  _date: '05-20-92' },
+      'DOS.H':      { _size: 5632,  _date: '05-20-92' },
+      'DIR.H':      { _size: 1944,  _date: '05-20-92' },
+      'ALLOC.H':    { _size: 1432,  _date: '05-20-92' },
+    },
+    'LIB': {
+      'CL.LIB':     { _size: 262144, _date: '05-20-92' },
+      'CS.LIB':     { _size: 245760, _date: '05-20-92' },
+      'MATH.LIB':   { _size: 98304,  _date: '05-20-92' },
+    },
+  },
+  'WINDOWS': {
+    'WIN.COM':       { _size: 25974,  _date: '07-11-97' },
+    'NOTEPAD.EXE':   { _size: 32000,  _date: '07-11-97' },
+    'CALC.EXE':      { _size: 26112,  _date: '07-11-97' },
+    'WRITE.EXE':     { _size: 36864,  _date: '07-11-97' },
+    'SOL.EXE':       { _size: 27648,  _date: '07-11-97' },
+    'SYSTEM': {
+      'USER.DLL':    { _size: 264192, _date: '07-11-97' },
+      'KERNEL.DLL':  { _size: 139264, _date: '07-11-97' },
+      'GDI.DLL':     { _size: 156160, _date: '07-11-97' },
+      'SHELL.DLL':   { _size: 40960,  _date: '07-11-97' },
+    },
+  },
+  'TEMP': {},
+  'MOUSE': {
+    'MOUSE.COM':    { _size: 56408, _date: '03-01-97' },
+    'MOUSE.SYS':    { _size: 56408, _date: '03-01-97' },
+  },
+};
+
+// --- FS helpers ---
+function isFile(node) { return node && typeof node._size === 'number'; }
+
+function getDirEntries(dirObj) {
+  const dirs = [], files = [];
+  for (const name of Object.keys(dirObj)) {
+    const node = dirObj[name];
+    if (isFile(node)) {
+      files.push({ name, isDir: false, size: node._size, date: node._date, content: node._content || null });
+    } else {
+      dirs.push({ name, isDir: true, size: 0, date: '' });
+    }
+  }
+  dirs.sort((a,b) => a.name.localeCompare(b.name));
+  files.sort((a,b) => a.name.localeCompare(b.name));
+  return dirs.concat(files);
+}
+
+function resolvePath(pathParts) {
+  let node = FS;
+  for (const p of pathParts) {
+    if (!node[p] || isFile(node[p])) return null;
+    node = node[p];
+  }
+  return node;
+}
+
+// --- Formatting ---
+function fmtSize(s) {
+  if (s === 0) return '   <DIR>';
+  const str = s.toLocaleString('en-US');
+  return str.padStart(8);
+}
+
+// --- App state ---
+const screenEl = document.getElementById('screen');
+let pathParts = [];         // e.g. ['PROJECTS', 'SMARTFILE']
+let cursor = 0;
+let scroll = 0;
+let entries = [];
+let mode = 'splash';       // 'splash', 'browse', 'viewer', 'help'
+let viewerLines = [];
+let viewerScroll = 0;
+let viewerTitle = '';
+
+function pathStr() {
+  return 'C:\\' + pathParts.join('\\');
+}
+
+function loadDir() {
+  const dir = pathParts.length === 0 ? FS : resolvePath(pathParts);
+  entries = dir ? getDirEntries(dir) : [];
+  cursor = 0;
+  scroll = 0;
+}
+
+// --- Drawing: Splash ---
+function drawSplash() {
+  clearBuf('f', '1');
+
+  const logo = [
+    "  ____                       _   _____ _ _      ",
+    " / ___| _ __ ___   __ _ _ __| |_|  ___(_) | ___ ",
+    " \\___ \\| '_ ` _ \\ / _` | '__| __| |_  | | |/ _ \\",
+    "  ___) | | | | | | (_| | |  | |_|  _| | | |  __/",
+    " |____/|_| |_| |_|\\__,_|_|   \\__|_|   |_|_|\\___|",
+    "  ____    ___  ____    __",
+    " |___ \\  / _ \\|___ \\  / /_",
+    "   __) || | | | __) || '_ \\",
+    "  / __/ | |_| |/ __/ | (_) |",
+    " |_____|\\___/|_____|\\___/",
+  ];
+
+  const bx = 14, by = 2, bw = 52, bh = 21;
+  drawDoubleBox(by, bx, bh, bw, 'e', '1');
+
+  // Fill inside
+  for (let y = by+1; y < by+bh-1; y++)
+    for (let x = bx+1; x < bx+bw-1; x++)
+      buf[y][x] = { ch: ' ', fg: 'f', bg: '1' };
+
+  const logoY = by + 2;
+  for (let i = 0; i < logo.length; i++) {
+    const lx = bx + Math.floor((bw - logo[i].length) / 2);
+    putStr(logoY + i, lx, logo[i], 'e', '1', true);
+  }
+
+  const tY = logoY + logo.length + 1;
+  const t1 = "A tribute to the original SmartFile";
+  const t2 = "by Shailendra Mishra and John Thomas, 1998";
+  putStr(tY, bx + Math.floor((bw - t1.length)/2), t1, 'f', '1');
+  putStr(tY+1, bx + Math.floor((bw - t2.length)/2), t2, 'f', '1');
+
+  const pY = by + bh - 2;
+  const prompt = "Press any key to continue...";
+  putStr(pY, bx + Math.floor((bw - prompt.length)/2), prompt, 'e', '1', true);
+
+  render();
+}
+
+// --- Drawing: File Browser ---
+function drawBrowser() {
+  clearBuf('f', '1');
+
+  // Title bar (row 0)
+  fillRow(0, 'f', '0');
+  const title = " SmartFile 2026 ";
+  putStr(0, Math.floor((COLS - title.length)/2), title, 'f', '0', true);
+
+  // Bottom key bar (row 24)
+  fillRow(24, '0', 'f');
+  const keys = [
+    ['1','Help'],['2','About'],['3','View'],['4','Open'],
+    ['5','----'],['6','----'],['7','----'],['8','----'],
+    ['9','Hide'],['10','Quit']
+  ];
+  const slotW = 8;
+  for (let i = 0; i < keys.length; i++) {
+    const [num, label] = keys[i];
+    putStr(24, i * slotW, num, '4', 'f', true);
+    putStr(24, i * slotW + num.length, label.substring(0, slotW - num.length), '0', 'f');
+  }
+
+  // Main panel
+  const pY = 1, pH = 22, pW = COLS;
+  drawDoubleBox(pY, 0, pH, pW, 'f', '1');
+
+  // Path
+  let pd = pathStr();
+  if (pd.length > COLS - 6) pd = '...' + pd.slice(-(COLS - 9));
+  putStr(pY, 2, ' ' + pd + ' ', 'f', '1', true);
+
+  // Column headers
+  const nameW = COLS - 32;
+  putStr(pY + 1, 2, 'Name'.padEnd(nameW) + '    Size' + '  ' + 'Modified'.padEnd(14), '3', '1');
+
+  // Separator
+  hLine(pY + 2, 2, COLS - 3, 'f', '1');
+
+  // File list
+  const listStart = pY + 3;
+  const listEnd = pY + pH - 2;
+  const visible = listEnd - listStart;
+
+  if (cursor < scroll) scroll = cursor;
+  if (cursor >= scroll + visible) scroll = cursor - visible + 1;
+  if (scroll < 0) scroll = 0;
+
+  for (let i = 0; i < visible; i++) {
+    const idx = scroll + i;
+    const dy = listStart + i;
+    if (idx >= entries.length) break;
+
+    const e = entries[idx];
+    const sel = idx === cursor;
+
+    let fg, bg;
+    if (e.isDir) { fg = 'e'; bg = sel ? '3' : '1'; }
+    else         { fg = 'f'; bg = sel ? '3' : '1'; }
+    if (sel) fg = e.isDir ? 'e' : '0';
+
+    const icon = e.isDir ? '\u25BA ' : '  ';
+    let dispName = icon + e.name;
+    if (dispName.length > nameW) dispName = dispName.slice(0, nameW - 1) + '\u2026';
+
+    const sizeStr = e.isDir ? '   <DIR>' : fmtSize(e.size);
+    const dateStr = e.date || '';
+    const line = dispName.padEnd(nameW) + sizeStr + '  ' + dateStr.padEnd(14);
+
+    if (sel) fillRow(dy, fg, bg);
+    putStr(dy, 2, line.slice(0, COLS - 4), fg, bg, e.isDir);
+  }
+
+  // Scroll indicators
+  if (scroll > 0) putStr(listStart, COLS - 2, '\u25B2', '3', '1');
+  if (scroll + visible < entries.length) putStr(listEnd - 1, COLS - 2, '\u25BC', '3', '1');
+
+  // Status bar (row 23)
+  fillRow(23, '0', '3');
+  const nDirs = entries.filter(e => e.isDir).length;
+  const nFiles = entries.filter(e => !e.isDir).length;
+  const totalSize = entries.reduce((s,e) => s + (e.isDir ? 0 : e.size), 0);
+  const status = ` ${nDirs} dir(s), ${nFiles} file(s), ${totalSize.toLocaleString()} bytes`;
+  putStr(23, 0, status.padEnd(COLS), '0', '3');
+
+  render();
+}
+
+// --- Drawing: File Viewer ---
+function drawViewer() {
+  clearBuf('f', '1');
+
+  fillRow(0, 'f', '0');
+  const t = ` ${viewerTitle} `;
+  putStr(0, Math.floor((COLS - t.length)/2), t, 'f', '0', true);
+
+  fillRow(24, '0', '3');
+  const hint = ' ESC/Backspace: Close    Up/Down/PgUp/PgDn: Scroll';
+  putStr(24, 0, hint.padEnd(COLS), '0', '3');
+
+  const viewH = 23;
+  for (let i = 0; i < viewH; i++) {
+    const li = viewerScroll + i;
+    if (li < viewerLines.length) {
+      const line = viewerLines[li].slice(0, COLS);
+      putStr(1 + i, 0, line, 'f', '1');
+    }
+  }
+
+  // Line number indicator
+  const pos = `Line ${viewerScroll + 1}/${viewerLines.length}`;
+  putStr(0, COLS - pos.length - 1, pos, '0', '0');
+
+  render();
+}
+
+// --- Drawing: Help ---
+function drawHelp() {
+  clearBuf('f', '1');
+  drawBrowser();
+
+  const hw = 46, hh = 20;
+  const hy = Math.floor((ROWS - hh)/2);
+  const hx = Math.floor((COLS - hw)/2);
+
+  // Fill help bg
+  for (let y = hy; y < hy+hh; y++)
+    for (let x = hx; x < hx+hw; x++)
+      if (y >= 0 && y < ROWS && x >= 0 && x < COLS)
+        buf[y][x] = { ch: ' ', fg: 'f', bg: '4' };
+
+  drawDoubleBox(hy, hx, hh, hw, 'f', '4');
+  const ht = ' Help ';
+  putStr(hy, hx + Math.floor((hw - ht.length)/2), ht, 'f', '4', true);
+
+  const lines = [
+    "SmartFile 2026 - Keyboard Reference",
+    "",
+    "\u2500\u2500\u2500 Navigation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "  Up/Down ........ Move cursor",
+    "  PgUp/PgDn ...... Scroll page",
+    "  Home/End ....... First/last item",
+    "  Enter .......... Open dir or view file",
+    "  Backspace ...... Go up / go back",
+    "",
+    "\u2500\u2500\u2500 Actions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+    "  F1 ............. This help",
+    "  F2 ............. About / splash screen",
+    "  F3 ............. View file",
+    "  Esc ............ Quit / close",
+    "",
+    "  This is a web demo with a virtual",
+    "  DOS filesystem. Download SmartFile",
+    "  2026 to browse your real files!",
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    putStr(hy + 2 + i, hx + 2, lines[i].slice(0, hw - 4), 'f', '4');
+  }
+
+  render();
+}
+
+// --- Open a file for viewing ---
+function openFile(entry) {
+  if (entry.content) {
+    viewerTitle = entry.name;
+    viewerLines = entry.content.split('\n');
+    viewerScroll = 0;
+    mode = 'viewer';
+    drawViewer();
+  } else {
+    // Binary file or no content
+    const ext = entry.name.split('.').pop();
+    if (['EXE','COM','OBJ','DLL','LIB','SYS','WAD','DAT','WL6'].includes(ext)) {
+      viewerTitle = entry.name;
+      viewerLines = [
+        '',
+        '',
+        '  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588',
+        '',
+        '    Binary file: ' + entry.name,
+        '    Size: ' + entry.size.toLocaleString() + ' bytes',
+        '',
+      ];
+      if (entry.name === 'DOOM.EXE' || entry.name === 'DOOM2.WAD') {
+        viewerLines.push('    Requires MS-DOS to run.');
+        viewerLines.push('    Nice try though!');
+      } else if (entry.name === 'PRINCE.EXE') {
+        viewerLines.push('    "Careful! That\'s a twelve-story drop!"');
+      } else if (entry.name === 'WOLF3D.EXE') {
+        viewerLines.push('    Mein Leben!');
+      } else if (entry.name === 'SMARTFILE.EXE') {
+        viewerLines.push('    The OG. Where it all started.');
+        viewerLines.push('    Now reborn as SmartFile 2026.');
+      } else if (entry.name === 'WIN.COM') {
+        viewerLines.push('    "Where do you want to go today?"');
+        viewerLines.push('    Not here. We\'re staying in DOS.');
+      }
+      viewerLines.push('');
+      viewerScroll = 0;
+      mode = 'viewer';
+      drawViewer();
+    }
+  }
+}
+
+// --- Navigation ---
+let history = [];  // stack of { pathParts, cursor, scroll }
+
+function enterDir(name) {
+  history.push({ pathParts: [...pathParts], cursor, scroll });
+  pathParts.push(name);
+  loadDir();
+  drawBrowser();
+}
+
+function goBack() {
+  if (history.length > 0) {
+    const prev = history.pop();
+    pathParts = prev.pathParts;
+    cursor = prev.cursor;
+    scroll = prev.scroll;
+    const dir = pathParts.length === 0 ? FS : resolvePath(pathParts);
+    entries = dir ? getDirEntries(dir) : [];
+  } else if (pathParts.length > 0) {
+    const oldName = pathParts.pop();
+    const dir = pathParts.length === 0 ? FS : resolvePath(pathParts);
+    entries = dir ? getDirEntries(dir) : [];
+    cursor = entries.findIndex(e => e.name === oldName);
+    if (cursor < 0) cursor = 0;
+    scroll = Math.max(0, cursor - 8);
+  }
+  drawBrowser();
+}
+
+// --- Keyboard ---
+document.addEventListener('keydown', (e) => {
+  // Prevent browser defaults for our keys
+  const nav = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Backspace',
+               'Enter','Home','End','PageUp','PageDown','F1','F2','F3','Escape','Tab'];
+  if (nav.includes(e.key) || e.key.startsWith('F')) {
+    e.preventDefault();
+  }
+
+  if (mode === 'splash') {
+    mode = 'browse';
+    loadDir();
+    drawBrowser();
+    return;
+  }
+
+  if (mode === 'help') {
+    mode = 'browse';
+    drawBrowser();
+    return;
+  }
+
+  if (mode === 'viewer') {
+    const viewH = 23;
+    if (e.key === 'Escape' || e.key === 'Backspace') {
+      mode = 'browse';
+      drawBrowser();
+    } else if (e.key === 'ArrowUp') {
+      if (viewerScroll > 0) { viewerScroll--; drawViewer(); }
+    } else if (e.key === 'ArrowDown') {
+      if (viewerScroll < viewerLines.length - viewH) { viewerScroll++; drawViewer(); }
+    } else if (e.key === 'PageUp') {
+      viewerScroll = Math.max(0, viewerScroll - viewH);
+      drawViewer();
+    } else if (e.key === 'PageDown') {
+      viewerScroll = Math.min(Math.max(0, viewerLines.length - viewH), viewerScroll + viewH);
+      drawViewer();
+    } else if (e.key === 'Home') {
+      viewerScroll = 0; drawViewer();
+    } else if (e.key === 'End') {
+      viewerScroll = Math.max(0, viewerLines.length - viewH); drawViewer();
+    }
+    return;
+  }
+
+  // Browse mode
+  const visible = 17;
+
+  if (e.key === 'ArrowUp') {
+    if (cursor > 0) { cursor--; drawBrowser(); }
+  } else if (e.key === 'ArrowDown') {
+    if (cursor < entries.length - 1) { cursor++; drawBrowser(); }
+  } else if (e.key === 'PageUp') {
+    cursor = Math.max(0, cursor - visible);
+    drawBrowser();
+  } else if (e.key === 'PageDown') {
+    cursor = Math.min(entries.length - 1, cursor + visible);
+    drawBrowser();
+  } else if (e.key === 'Home') {
+    cursor = 0; scroll = 0; drawBrowser();
+  } else if (e.key === 'End') {
+    cursor = Math.max(0, entries.length - 1); drawBrowser();
+  } else if (e.key === 'Enter') {
+    if (entries.length > 0) {
+      const entry = entries[cursor];
+      if (entry.isDir) {
+        enterDir(entry.name);
+      } else {
+        openFile(entry);
+      }
+    }
+  } else if (e.key === 'Backspace') {
+    goBack();
+  } else if (e.key === 'F1') {
+    mode = 'help';
+    drawHelp();
+  } else if (e.key === 'F2') {
+    mode = 'splash';
+    drawSplash();
+  } else if (e.key === 'F3') {
+    if (entries.length > 0 && !entries[cursor].isDir) {
+      openFile(entries[cursor]);
+    }
+  } else if (e.key === 'Escape') {
+    // Show a quit message in status bar - but it's a web app, nowhere to quit to
+    // Just show the splash as a graceful "exit"
+    mode = 'splash';
+    drawSplash();
+  }
+});
+
+// --- Init ---
+drawSplash();
+
+// Focus handling - click to focus
+document.addEventListener('click', () => {
+  document.body.focus();
+});
+</script>
+</body>
+</html>
